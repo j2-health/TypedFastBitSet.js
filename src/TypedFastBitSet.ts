@@ -670,4 +670,45 @@ export class TypedFastBitSet implements BitSet {
     }
     return answer;
   }
+
+  /**
+   * Deserialize a TypedFastBitSet from a byte array (Uint8Array).
+   */
+  public static fromBytes(bytes: Uint8Array): TypedFastBitSet {
+    const bitset = new TypedFastBitSet();
+    // Iterate over each byte, setting bits as needed
+    for (let i = 0; i < bytes.length; i++) {
+      let val = bytes[i];
+      let bitIndex = i << 3; // i * 8
+      // Check each of the 8 bits in 'val'
+      for (let bitOffset = 0; bitOffset < 8; bitOffset++) {
+        if ((val & (1 << bitOffset)) !== 0) {
+          bitset.add(bitIndex + bitOffset);
+        }
+      }
+    }
+    return bitset;
+  }
+
+  /**
+   * Serialize this bitset to a byte array (Uint8Array).
+   */
+  public toBytes(): Uint8Array {
+    const setBits = this.array();
+    if (setBits.length === 0) {
+      return new Uint8Array(0);
+    }
+
+    const maxBit = Math.max(...setBits);
+    const byteCount = Math.floor(maxBit / 8) + 1;
+    const byteArray = new Uint8Array(byteCount);
+
+    setBits.forEach((bitIndex) => {
+      const byteIndex = bitIndex >>> 3; // integer divide by 8
+      const bitOffset = bitIndex & 7;   // mod 8
+      byteArray[byteIndex] |= 1 << bitOffset;
+    });
+
+    return byteArray;
+  }
 }
