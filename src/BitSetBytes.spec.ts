@@ -46,4 +46,32 @@ describe("TypedFastBitSet toBytes() method", () => {
     expect(reconstructed.size()).toBe(0);
     expect(reconstructed.array().length).toBe(0);
   });
+
+  it("should convert to base64 string correctly", () => {
+    const b = new TypedFastBitSet([0, 1, 2, 10, 15]);
+    const base64String = b.toBase64String();
+    // Recalculated base64 string for the given set bits
+    const expectedBase64 = "B4Q="; // Adjusted based on actual bitset
+    expect(base64String).toBe(expectedBase64);
+  });
+
+  it("should handle empty byte array for base64 conversion", () => {
+    const base64String = new TypedFastBitSet().toBase64String();
+    expect(base64String).toBe('');
+  });
+
+  it("should convert from base64 string correctly", () => {
+    const base64String = "B4Q=";
+    const bitset = TypedFastBitSet.fromBase64String(base64String);
+    const expectedSet = new TypedFastBitSet([0, 1, 2, 10, 15]);
+    expect(bitset.size()).toBe(expectedSet.size());
+    expect(bitset.array()).toEqual(expectedSet.array());
+  });
+
+  it("should handle empty base64 string conversion", () => {
+    const base64String = "";
+    const bitset = TypedFastBitSet.fromBase64String(base64String);
+    expect(bitset.size()).toBe(0);
+    expect(bitset.array().length).toBe(0);
+  });
 }); 

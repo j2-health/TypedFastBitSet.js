@@ -711,4 +711,56 @@ export class TypedFastBitSet implements BitSet {
 
     return byteArray;
   }
+
+  /**
+   * Convert the bitset to a base64 string.
+   */
+  public toBase64String(): string {
+    const byteArray = this.toBytes();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let base64String = '';
+    for (let i = 0; i < byteArray.length; i += 3) {
+      const b1 = byteArray[i] & 0xFF;
+      const b2 = (i + 1 < byteArray.length) ? byteArray[i + 1] & 0xFF : 0;
+      const b3 = (i + 2 < byteArray.length) ? byteArray[i + 2] & 0xFF : 0;
+
+      const base64Index1 = b1 >> 2;
+      const base64Index2 = ((b1 & 0x03) << 4) | (b2 >> 4);
+      const base64Index3 = ((b2 & 0x0F) << 2) | (b3 >> 6);
+      const base64Index4 = b3 & 0x3F;
+
+      base64String += chars.charAt(base64Index1);
+      base64String += chars.charAt(base64Index2);
+      base64String += (i + 1 < byteArray.length) ? chars.charAt(base64Index3) : '=';
+      base64String += (i + 2 < byteArray.length) ? chars.charAt(base64Index4) : '=';
+    }
+    return base64String;
+  }
+
+  /**
+   * Deserialize a TypedFastBitSet from a base64 string.
+   */
+  public static fromBase64String(base64: string): TypedFastBitSet {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let byteArray = [];
+    let buffer = 0;
+    let bits = 0;
+
+    for (let i = 0; i < base64.length; i++) {
+      const char = base64.charAt(i);
+      if (char === '=') break;
+      const value = chars.indexOf(char);
+      if (value === -1) continue;
+
+      buffer = (buffer << 6) | value;
+      bits += 6;
+
+      if (bits >= 8) {
+        bits -= 8;
+        byteArray.push((buffer >> bits) & 0xFF);
+      }
+    }
+
+    return TypedFastBitSet.fromBytes(new Uint8Array(byteArray));
+  }
 }
